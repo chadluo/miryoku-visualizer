@@ -147,6 +147,11 @@ export default function App() {
           ))}
         </p>
       </section>
+      <footer>
+        <p>
+          <a href="https://github.com/chadluo/miryoku-visualizer">Source on GitHub</a>
+        </p>
+      </footer>
     </main>
   );
 }
