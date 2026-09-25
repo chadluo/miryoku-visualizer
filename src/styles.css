@@ -1,1 +1,94 @@
+:root {
+  color-scheme: light dark;
+  --bg: #fafafa;
+  --fg: #1c1c1e;
+  --muted: #6b6b70;
+  --key: #ffffff;
+  --key-edge: #c9c9ce;
+  --c-base: #1d4ed8;
+  --c-nav: #059669;
+  --c-mouse: #d97706;
+  --c-media: #7c3aed;
+  --c-num: #db2777;
+  --c-sym: #0891b2;
+  --c-fun: #ca8a04;
+  --c-button: #64748b;
+}
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17171a;
+    --fg: #ececf0;
+    --muted: #9a9aa2;
+    --key: #24242a;
+    --key-edge: #45454d;
+    --c-base: #7aa2ff;
+    --c-nav: #34d399;
+    --c-mouse: #fbbf24;
+    --c-media: #a78bfa;
+    --c-num: #f472b6;
+    --c-sym: #22d3ee;
+    --c-fun: #facc15;
+    --c-button: #94a3b8;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.5 system-ui, sans-serif;
+}
+
+main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 16px 48px;
+}
+
+a { color: var(--c-base); }
+
+.options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.options label { display: grid; gap: 2px; font-size: 0.8rem; color: var(--muted); }
+select, button { font: inherit; padding: 4px 8px; }
+
+.layers, .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.layers button, .tabs button { border-left: 4px solid var(--c, var(--c-base)); }
+button[aria-pressed="true"] { background: var(--c, var(--c-base)); color: var(--bg); }
+
+/* The page never scrolls sideways; the keyboard scrolls inside its own box on narrow screens. */
+.keyboard-wrap { overflow-x: auto; }
+.keyboard { display: block; min-width: 620px; width: 100%; user-select: none; -webkit-user-select: none; }
+
+.key rect { fill: var(--key); stroke: var(--key-edge); stroke-width: 1; }
+.key.lit rect { fill: color-mix(in srgb, var(--tint) 22%, var(--key)); stroke: var(--tint); }
+.key.held rect { fill: color-mix(in srgb, var(--tint) 35%, var(--key)); stroke: var(--tint); stroke-width: 3; }
+.key.holdable { cursor: pointer; touch-action: none; }
+.key text { font-size: 10.5px; }
+.key text.base { font-size: 13px; }
+.key text.button { font-size: 9px; }
+.key text.hold { font-size: 8px; }
+.label { transition: opacity 0.1s; }
+.label.dim { opacity: 0.28; }
+.label[data-layer="base"] { fill: var(--c-base); }
+.label[data-layer="nav"] { fill: var(--c-nav); }
+.label[data-layer="mouse"] { fill: var(--c-mouse); }
+.label[data-layer="media"] { fill: var(--c-media); }
+.label[data-layer="num"] { fill: var(--c-num); }
+.label[data-layer="sym"] { fill: var(--c-sym); }
+.label[data-layer="fun"] { fill: var(--c-fun); }
+.label[data-layer="button"] { fill: var(--c-button); }
+
+pre {
+  overflow-x: auto;
+  margin: 4px 0;
+  padding: 8px 12px;
+  background: var(--key);
+  border: 1px solid var(--key-edge);
+}

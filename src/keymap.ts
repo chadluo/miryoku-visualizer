@@ -49,15 +49,26 @@ const SYMBOLS: Record<string, string> = {
 };
 
 const OTHER: Record<string, string> = {
-  CW_TOGG: "CapsW", RGB_TOG: "RGB", RGB_MOD: "Mode", RGB_HUI: "Hue", RGB_SAI: "Sat", RGB_VAI: "Val", OU_AUTO: "Auto",
+  CW_TOGG: "CapsW", RGB_TOG: "RGB", RGB_MOD: "Mod", RGB_HUI: "Hue", RGB_SAI: "Sat", RGB_VAI: "Val", OU_AUTO: "Auto",
 };
 
 const CLIPBOARD: Record<string, Record<string, string>> = {
-  DEFAULT: { U_UND: "Undo", U_CUT: "⇧⌦", U_CPY: "⌃Ins", U_PST: "⇧Ins", U_RDO: "Redo" },
+  DEFAULT: { U_UND: "Undo", U_CUT: "Cut", U_CPY: "Copy", U_PST: "Paste", U_RDO: "Redo" },
   FUN: { U_UND: "Undo", U_CUT: "Cut", U_CPY: "Copy", U_PST: "Paste", U_RDO: "Redo" },
   MAC: { U_UND: "⌘Z", U_CUT: "⌘X", U_CPY: "⌘C", U_PST: "⌘V", U_RDO: "⇧⌘Z" },
   WIN: { U_UND: "⌃Z", U_CUT: "⌃X", U_CPY: "⌃C", U_PST: "⌃V", U_RDO: "⌃Y" },
 };
+
+// Keycodes behind the U_* clipboard aliases (manna-harbour_miryoku.h), shown in tooltips.
+const CLIPBOARD_KEYCODES: Record<string, string[]> = {
+  DEFAULT: ["KC_UNDO", "S(KC_DEL)", "C(KC_INS)", "S(KC_INS)", "KC_AGIN"],
+  FUN: ["KC_UNDO", "KC_CUT", "KC_COPY", "KC_PSTE", "KC_AGIN"],
+  MAC: ["LCMD(KC_Z)", "LCMD(KC_X)", "LCMD(KC_C)", "LCMD(KC_V)", "SCMD(KC_Z)"],
+  WIN: ["C(KC_Z)", "C(KC_X)", "C(KC_C)", "C(KC_V)", "C(KC_Y)"],
+};
+const CLIPBOARD_ALIASES = ["U_UND", "U_CUT", "U_CPY", "U_PST", "U_RDO"];
+const keycodeOf = (token: string, clipboard: string) =>
+  CLIPBOARD_KEYCODES[clipboard][CLIPBOARD_ALIASES.indexOf(token)] ?? token;
 
 /** Unknown tokens come back as-is so a data typo is visible in the UI (and caught by the tests). */
 export function labelOf(token: string, clipboard: string): string {
@@ -121,7 +132,7 @@ export function buildKeymap(o: Options, view: BaseView = "base"): KeyModel[] {
     }
     const tip = (Object.keys(all) as Layer[])
       .filter((l) => !/^U_N[AU]$/.test(all[l][i]))
-      .map((l) => `${LAYER_NAMES[l]}: ${all[l][i]}`)
+      .map((l) => `${LAYER_NAMES[l]}: ${keycodeOf(all[l][i], o.clipboard)}`)
       .join("\n");
     return { hand, base: tap, corners, button: labelOf(all.button[i], o.clipboard), hold, holdLayer, tip };
   });

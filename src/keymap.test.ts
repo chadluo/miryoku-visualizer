@@ -56,7 +56,7 @@ describe("keymap", () => {
     const paste = (clipboard: string) => buildKeymap({ ...DEFAULTS, clipboard }).flatMap((k) => Object.values(k.corners)).map((c) => c.text);
     expect(paste("MAC")).toContain("⌘V");
     expect(paste("WIN")).toContain("⌃V");
-    expect(paste("DEFAULT")).not.toContain("⌘V");
+    expect(paste("DEFAULT")).toContain("Paste");
   });
 });
 
