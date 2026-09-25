@@ -1,8 +1,8 @@
 import type { CSSProperties, PointerEvent } from "react";
 import type { KeyModel, Layer } from "./keymap";
 
-const KEY = 68;
-const PITCH = 72;
+const KEY = 78;
+const PITCH = 82;
 const HAND_GAP = 28;
 const PAD = 4;
 const THUMB_DROP = 6;

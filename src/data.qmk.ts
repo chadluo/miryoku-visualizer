@@ -1,11 +1,11 @@
 // Layer data copied from Miryoku QMK (miryoku_babel/miryoku_layer_alternatives.h):
 // https://github.com/manna-harbour/miryoku_qmk/blob/miryoku/users/manna-harbour_miryoku/miryoku_babel/miryoku_layer_alternatives.h
-// Each layer is 36 QMK keycode tokens: rows 1-3 (left 5, right 5) then thumbs (left 3, right 3).
+// Each layer is 36 QMK tokens: rows 1-3 (left 5, right 5) then thumbs (left 3, right 3).
 // Upstream keeps 4 unused (U_NP) positions in the thumb row; they are dropped here.
 
-export type Tokens = readonly string[];
+import type { Tokens } from "./types";
 
-export const LAYERS: Record<string, Tokens> = {
+export const LAYERS_QMK: Record<string, Tokens> = {
   "BASE_AZERTY_FLIP": [
     "KC_A", "KC_Z", "KC_E", "KC_R", "KC_T", "KC_Y", "KC_U", "KC_I", "KC_O", "KC_P",
     "LGUI_T(KC_Q)", "LALT_T(KC_S)", "LCTL_T(KC_D)", "LSFT_T(KC_F)", "KC_G", "KC_H", "LSFT_T(KC_J)", "LCTL_T(KC_K)", "LALT_T(KC_L)", "LGUI_T(KC_M)",

@@ -64,13 +64,13 @@ button[aria-pressed="true"] { background: var(--c, var(--c-base)); color: var(--
 
 /* The page never scrolls sideways; the keyboard scrolls inside its own box on narrow screens. */
 .keyboard-wrap { overflow-x: auto; }
-.keyboard { display: block; min-width: 620px; width: 100%; user-select: none; -webkit-user-select: none; }
+.keyboard { display: block; min-width: 720px; width: 100%; user-select: none; -webkit-user-select: none; }
 
 .key rect { fill: var(--key); stroke: var(--key-edge); stroke-width: 1; }
 .key.lit rect { fill: color-mix(in srgb, var(--tint) 22%, var(--key)); stroke: var(--tint); }
 .key.held rect { fill: color-mix(in srgb, var(--tint) 35%, var(--key)); stroke: var(--tint); stroke-width: 3; }
 .key.holdable { cursor: pointer; touch-action: none; }
-.key text { font-size: 10.5px; }
+.key text { font-size: 10px; }
 .key text.base { font-size: 13px; }
 .key text.button { font-size: 9px; }
 .key text.hold { font-size: 8px; }
@@ -92,3 +92,6 @@ pre {
   background: var(--key);
   border: 1px solid var(--key-edge);
 }
+
+.notes { padding-left: 1.2rem; }
+.notes .warning { color: var(--c-mouse); font-weight: 600; }

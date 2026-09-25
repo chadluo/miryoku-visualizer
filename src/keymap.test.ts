@@ -1,27 +1,28 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildKeymap, layerTokens, type Layer } from "./keymap";
-import { ALPHAS, DEFAULTS, OPTIONS, fromSearch, isAvailable, toSearch, type Options } from "./options";
+import { ALPHAS, DEFAULTS, OPTIONS, fromSearch, loadOptions, saveOptions, toSearch, type Options } from "./options";
 
 const combos = function* (): Generator<Options> {
-  for (const alphas of ALPHAS)
-    for (const nav of OPTIONS.nav.values)
-      for (const clipboard of OPTIONS.clipboard.values)
-        for (const layers of OPTIONS.layers.values) {
-          const o = { alphas, extra: alphas, tap: alphas, nav, clipboard, layers };
-          if (isAvailable(o, "nav", nav)) yield o;
-        }
+  for (const firmware of OPTIONS.firmware.values)
+    for (const labels of OPTIONS.labels.values)
+      for (const alphas of ALPHAS)
+        for (const nav of OPTIONS.nav.values)
+          for (const clipboard of OPTIONS.clipboard.values)
+            for (const layers of OPTIONS.layers.values)
+              yield { firmware, labels, alphas, extra: alphas, tap: alphas, nav, clipboard, layers };
 };
 
 const LAYERS: Layer[] = ["base", "nav", "mouse", "media", "num", "sym", "fun", "button"];
+const media = (o: Options) => buildKeymap(o).flatMap((k) => Object.values(k.corners)).filter((c) => c.layer === "media").map((c) => c.text);
 
 describe("keymap", () => {
-  it("resolves 36 keys per layer and every keycode to a label, for every valid option combination", () => {
+  it("resolves 36 keys per layer and every keycode to a label, for every option combination and firmware", () => {
     for (const o of combos()) {
       for (const l of LAYERS) expect(layerTokens(o, l), JSON.stringify([o, l])).toHaveLength(36);
       for (const view of ["base", "extra", "tap"] as const)
         for (const k of buildKeymap(o, view)) {
-          const texts = [k.base, k.button, ...Object.values(k.corners).map((c) => c.text)];
-          for (const t of texts) expect(t).not.toMatch(/^(KC_|U_|TD\(|LT\(|\w+_T\()/);
+          const texts = [k.base, k.button, k.hold, ...Object.values(k.corners).map((c) => c.text)];
+          for (const t of texts) expect(t).not.toMatch(/^(KC_|U_|TD\(|LT\(|&(kp|u_|mkp|mmv|msc)|\w+_T\()/);
         }
     }
   });
@@ -43,8 +44,10 @@ describe("keymap", () => {
   it("assigns thumb layers by position, so a layer's hold key sits on the opposite hand of its labels", () => {
     // Default: left thumbs hold Media/Nav/Mouse, right thumbs hold Sym/Num/Fun (upstream reference manual).
     const held = (o: Options) => buildKeymap(o).slice(30).map((k) => k.holdLayer);
-    expect(held(DEFAULTS)).toEqual(["media", "nav", "mouse", "sym", "num", "fun"]);
-    expect(held({ ...DEFAULTS, layers: "FLIP" })).toEqual(["fun", "num", "sym", "mouse", "nav", "media"]);
+    for (const firmware of OPTIONS.firmware.values) {
+      expect(held({ ...DEFAULTS, firmware })).toEqual(["media", "nav", "mouse", "sym", "num", "fun"]);
+      expect(held({ ...DEFAULTS, firmware, layers: "FLIP" })).toEqual(["fun", "num", "sym", "mouse", "nav", "media"]);
+    }
   });
 
   it("shows no hold behavior on the tap layer", () => {
@@ -53,24 +56,77 @@ describe("keymap", () => {
   });
 
   it("changes clipboard labels with the clipboard option", () => {
-    const paste = (clipboard: string) => buildKeymap({ ...DEFAULTS, clipboard }).flatMap((k) => Object.values(k.corners)).map((c) => c.text);
-    expect(paste("MAC")).toContain("⌘V");
-    expect(paste("WIN")).toContain("⌃V");
-    expect(paste("DEFAULT")).toContain("Paste");
+    const labels = (clipboard: string) => buildKeymap({ ...DEFAULTS, clipboard }).flatMap((k) => Object.values(k.corners)).map((c) => c.text);
+    expect(labels("MAC")).toContain("⌘V");
+    expect(labels("WIN")).toContain("⌃V");
+    expect(labels("DEFAULT")).toContain("Paste");
+  });
+
+  it("uses each firmware's own layer data", () => {
+    // ZMK's Media layer has Bluetooth profiles and external power; QMK's has neither.
+    expect(media({ ...DEFAULTS, firmware: "ZMK" })).toEqual(expect.arrayContaining(["BT0", "BT3", "ExtPwr", "Out"]));
+    expect(media({ ...DEFAULTS, firmware: "QMK" })).not.toContain("BT0");
+    expect(media({ ...DEFAULTS, firmware: "QMK" })).toContain("Auto");
+    // The tooltip shows the firmware's own keycode spelling.
+    expect(buildKeymap({ ...DEFAULTS, firmware: "ZMK" })[31].tip).toContain("&kp SPACE");
+    expect(buildKeymap({ ...DEFAULTS, firmware: "QMK" })[31].tip).toContain("KC_SPC");
+  });
+
+  it("draws modifiers and Space/Tab/Enter as symbols or as text", () => {
+    for (const firmware of OPTIONS.firmware.values) {
+      const shown = (labels: string) => {
+        const k = buildKeymap({ ...DEFAULTS, firmware, labels });
+        return { homeMod: k[13].hold, space: k[31].base, enter: k[33].base, tab: k[32].base };
+      };
+      expect(shown("SYMBOLS")).toEqual({ homeMod: "⇧", space: "␣", enter: "↵", tab: "⇥" });
+      expect(shown("TEXT")).toEqual({ homeMod: "Shift", space: "Space", enter: "Enter", tab: "Tab" });
+    }
+  });
+
+  it("ignores VI nav under FLIP, as both firmwares do, and builds the default flipped nav", () => {
+    for (const firmware of OPTIONS.firmware.values) {
+      const flipped = { ...DEFAULTS, firmware, layers: "FLIP" };
+      expect(buildKeymap({ ...flipped, nav: "VI" })).toEqual(buildKeymap(flipped));
+      expect(buildKeymap({ ...DEFAULTS, firmware, nav: "VI" })).not.toEqual(buildKeymap({ ...DEFAULTS, firmware }));
+    }
   });
 });
 
-describe("options in the URL", () => {
+describe("options in the URL and storage", () => {
+  const stubStorage = (initial: Record<string, string> = {}) => {
+    const data = { ...initial };
+    vi.stubGlobal("localStorage", { getItem: (k: string) => data[k] ?? null, setItem: (k: string, v: string) => void (data[k] = v) });
+    return data;
+  };
+  afterEach(() => vi.unstubAllGlobals());
+
   it("leaves defaults out and round-trips the rest", () => {
     expect(toSearch(DEFAULTS)).toBe("");
-    const o = { ...DEFAULTS, alphas: "QWERTY", nav: "INVERTEDT", layers: "FLIP" };
-    expect(toSearch(o)).toBe("?alphas=qwerty&nav=invertedt&layers=flip");
+    const o = { ...DEFAULTS, alphas: "QWERTY", nav: "INVERTEDT", layers: "FLIP", firmware: "ZMK" };
+    expect(toSearch(o)).toBe("?firmware=zmk&alphas=qwerty&nav=invertedt&layers=flip");
     expect(fromSearch(toSearch(o))).toEqual(o);
   });
 
-  it("ignores unknown values and drops vi nav when flipped", () => {
-    expect(fromSearch("?alphas=nope&nav=bogus")).toEqual(DEFAULTS);
-    expect(fromSearch("?nav=vi&layers=flip").nav).toBe("DEFAULT");
-    expect(fromSearch("?nav=vi").nav).toBe("VI");
+  it("ignores unknown keys and values", () => {
+    expect(fromSearch("?alphas=nope&nav=bogus&x=1")).toEqual(DEFAULTS);
+  });
+
+  it("keeps VI selected under FLIP so the app can explain it", () => {
+    expect(fromSearch("?nav=vi&layers=flip").nav).toBe("VI");
+  });
+
+  it("remembers options, and lets the URL win per option", () => {
+    const data = stubStorage();
+    saveOptions({ ...DEFAULTS, alphas: "DVORAK", clipboard: "MAC" });
+    expect(loadOptions("")).toEqual({ ...DEFAULTS, alphas: "DVORAK", clipboard: "MAC" });
+    expect(loadOptions("?alphas=qwerty")).toEqual({ ...DEFAULTS, alphas: "QWERTY", clipboard: "MAC" });
+    data["miryoku-visualizer.options"] = "not json";
+    expect(loadOptions("?nav=vi")).toEqual({ ...DEFAULTS, nav: "VI" });
+  });
+
+  it("works when storage is unavailable", () => {
+    vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); } });
+    expect(() => saveOptions(DEFAULTS)).not.toThrow();
+    expect(loadOptions("?layers=flip").layers).toBe("FLIP");
   });
 });
