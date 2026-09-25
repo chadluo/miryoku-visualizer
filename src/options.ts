@@ -25,6 +25,7 @@ export type Firmware = "QMK" | "ZMK";
 
 export const OPTION_KEYS = Object.keys(OPTIONS) as OptionKey[];
 export const MIRYOKU_KEYS = OPTION_KEYS.filter((k) => OPTIONS[k].name.startsWith("MIRYOKU_"));
+export const VIEW_KEYS = OPTION_KEYS.filter((k) => !MIRYOKU_KEYS.includes(k));
 
 export const DEFAULTS = Object.fromEntries(OPTION_KEYS.map((k) => [k, OPTIONS[k].default])) as Options;
 

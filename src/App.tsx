@@ -3,7 +3,7 @@ import { FIRMWARE_LINKS, notes, snippets } from "./firmware";
 import Keyboard from "./Keyboard";
 import { LAYER_NAMES, buildKeymap, type BaseView, type Layer } from "./keymap";
 import {
-  DEFAULTS, OPTIONS, OPTION_KEYS, ignoredOptions, loadOptions, saveOptions, toSearch, type Firmware, type Options, type OptionKey,
+  DEFAULTS, MIRYOKU_KEYS, OPTIONS, VIEW_KEYS, ignoredOptions, loadOptions, saveOptions, toSearch, type Firmware, type Options, type OptionKey,
 } from "./options";
 
 const LAYERS = Object.keys(LAYER_NAMES) as Layer[];
@@ -43,6 +43,19 @@ export default function App() {
     saveOptions(options);
   }, [options]);
 
+  const optionField = (k: OptionKey) => (
+    <div className="field" key={k}>
+      <label htmlFor={`option-${k}`}>
+        <span className="field-label">{OPTIONS[k].name}</span>
+      </label>
+      <select id={`option-${k}`} name={k} value={options[k]} onChange={(e) => setOptions({ ...options, [k]: e.target.value })}>
+        {OPTIONS[k].values.map((v) => (
+          <option key={v} value={v}>{valueText(k, v, options)}</option>
+        ))}
+      </select>
+    </div>
+  );
+
   const keys = useMemo(() => buildKeymap(options, view), [options, view]);
   // A held thumb key wins over the toggle, and the toggle shows again on release.
   const highlight = heldKey !== null ? keys[heldKey].holdLayer ?? null : toggled;
@@ -60,33 +73,39 @@ export default function App() {
         pick. Press and hold a thumb key to see its layer.
       </p>
 
-      <section aria-label="Compile options" className="options">
-        {OPTION_KEYS.map((k) => (
-          <div className="field" key={k}>
-            <label htmlFor={`option-${k}`}>
-              <span className="field-label">{OPTIONS[k].name}</span>
+      <fieldset className="options">
+        <legend className="group-legend">View</legend>
+        <p className="field-hint">Changes what the app shows. These are not passed to the firmware build.</p>
+        <div className="options-grid">
+          {VIEW_KEYS.map(optionField)}
+          <div className="field">
+            <label htmlFor="option-view">
+              <span className="field-label">Base layer shown</span>
             </label>
-            <select id={`option-${k}`} name={k} value={options[k]} onChange={(e) => setOptions({ ...options, [k]: e.target.value })}>
-              {OPTIONS[k].values.map((v) => (
-                <option key={v} value={v}>{valueText(k, v, options)}</option>
-              ))}
+            <select id="option-view" name="view" value={view} onChange={(e) => setView(e.target.value as BaseView)}>
+              <option value="base">Base</option>
+              <option value="extra">Extra</option>
+              <option value="tap">Tap</option>
             </select>
           </div>
-        ))}
-        <div className="field">
-          <label htmlFor="option-view">
-            <span className="field-label">Base layer shown</span>
-          </label>
-          <select id="option-view" name="view" value={view} onChange={(e) => setView(e.target.value as BaseView)}>
-            <option value="base">Base</option>
-            <option value="extra">Extra</option>
-            <option value="tap">Tap</option>
-          </select>
         </div>
-        <div className="field">
-          <button type="button" className="button button--alt" onClick={() => setOptions(DEFAULTS)}>Reset options</button>
+      </fieldset>
+
+      <fieldset className="options">
+        <legend className="group-legend">Miryoku compile options</legend>
+        <div className="options-grid">
+          {MIRYOKU_KEYS.map(optionField)}
+          <div className="field">
+            <button
+              type="button"
+              className="button button--alt"
+              onClick={() => setOptions({ ...DEFAULTS, firmware: options.firmware, labels: options.labels })}
+            >
+              Reset compile options
+            </button>
+          </div>
         </div>
-      </section>
+      </fieldset>
 
       <section aria-label="Highlight a layer" className="layers">
         {LAYERS.map((l) => (

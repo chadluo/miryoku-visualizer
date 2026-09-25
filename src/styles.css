@@ -55,7 +55,10 @@ main {
 
 a:not([class]) { color: var(--c-base); }
 
-.options {
+fieldset.options { border: 0; padding: 0; margin: 0 0 1.5rem; }
+.options legend { margin-bottom: 0.5rem; }
+.options .field-hint { margin: 0 0 0.5rem; }
+.options-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 12px;
