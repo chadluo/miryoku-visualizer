@@ -27,10 +27,8 @@ interface Props {
 }
 
 export default function Keyboard({ keys, highlight, heldKey, onHold }: Props) {
-  // Highlighting only changes colour and opacity, never size, weight or position.
-  const cls = (layer: Layer, extra = "") => `label${extra}` + (highlight && highlight !== layer ? " dim" : "");
-  const lit = (k: KeyModel) =>
-    highlight === "base" || (highlight === "button" && !!k.button) || Object.values(k.corners).some((c) => c.layer === highlight);
+  // Highlighting only changes colour, background and opacity of labels, never size, weight or position.
+  const cls = (layer: Layer, extra = "") => `label${extra}` + (highlight ? (highlight === layer ? " hl" : " dim") : "");
 
   return (
     <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="keyboard" role="img" aria-label="Miryoku keyboard layout">
@@ -48,13 +46,12 @@ export default function Keyboard({ keys, highlight, heldKey, onHold }: Props) {
               onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
             }
           : {};
-        const tint = highlight && lit(k) ? ({ "--tint": `var(--c-${highlight})` } as CSSProperties) : undefined;
         return (
           <g
             key={i}
             transform={`translate(${x} ${y})`}
-            className={"key" + (holdable ? " holdable" : "") + (heldKey === i ? " held" : "") + (tint ? " lit" : "")}
-            style={heldKey === i ? ({ "--tint": `var(--c-${k.holdLayer})` } as CSSProperties) : tint}
+            className={"key" + (holdable ? " holdable" : "") + (heldKey === i ? " held" : "")}
+            style={heldKey === i ? ({ "--tint": `var(--c-${k.holdLayer})` } as CSSProperties) : undefined}
             {...bind}
           >
             <title>{k.tip}</title>

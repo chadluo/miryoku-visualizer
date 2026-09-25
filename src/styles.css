@@ -13,6 +13,7 @@
   --c-sym: #0891b2;
   --c-fun: #ca8a04;
   --c-button: #64748b;
+  --on-accent: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -30,6 +31,7 @@
     --c-sym: #22d3ee;
     --c-fun: #facc15;
     --c-button: #94a3b8;
+    --on-accent: #101014;
   }
 }
 
@@ -67,8 +69,7 @@ button[aria-pressed="true"] { background: var(--c, var(--c-base)); color: var(--
 .keyboard { display: block; min-width: 720px; width: 100%; user-select: none; -webkit-user-select: none; }
 
 .key rect { fill: var(--key); stroke: var(--key-edge); stroke-width: 1; }
-.key.lit rect { fill: color-mix(in srgb, var(--tint) 22%, var(--key)); stroke: var(--tint); }
-.key.held rect { fill: color-mix(in srgb, var(--tint) 35%, var(--key)); stroke: var(--tint); stroke-width: 3; }
+.key.held rect { stroke: var(--tint); stroke-width: 3; }
 .key.holdable { cursor: pointer; touch-action: none; }
 .key text { font-size: 10px; }
 .key text.base { font-size: 13px; }
@@ -76,6 +77,16 @@ button[aria-pressed="true"] { background: var(--c, var(--c-base)); color: var(--
 .key text.hold { font-size: 8px; }
 .label { transition: opacity 0.1s; }
 .label.dim { opacity: 0.28; }
+/* Background for the highlighted label only: a rounded halo in the layer colour, text in a contrasting colour. */
+.key text.hl { fill: var(--on-accent); stroke: var(--hl); stroke-width: 6px; stroke-linejoin: round; paint-order: stroke; }
+.key text.hl[data-layer="base"] { --hl: var(--c-base); }
+.key text.hl[data-layer="nav"] { --hl: var(--c-nav); }
+.key text.hl[data-layer="mouse"] { --hl: var(--c-mouse); }
+.key text.hl[data-layer="media"] { --hl: var(--c-media); }
+.key text.hl[data-layer="num"] { --hl: var(--c-num); }
+.key text.hl[data-layer="sym"] { --hl: var(--c-sym); }
+.key text.hl[data-layer="fun"] { --hl: var(--c-fun); }
+.key text.hl[data-layer="button"] { --hl: var(--c-button); }
 .label[data-layer="base"] { fill: var(--c-base); }
 .label[data-layer="nav"] { fill: var(--c-nav); }
 .label[data-layer="mouse"] { fill: var(--c-mouse); }
