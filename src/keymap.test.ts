@@ -2,15 +2,24 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildKeymap, layerTokens, type Layer } from "./keymap";
 import { ALPHAS, DEFAULTS, OPTIONS, fromSearch, loadOptions, saveOptions, toSearch, type Options } from "./options";
 
-const combos = function* (): Generator<Options> {
+// Alphas only change the base layer letters and the rest only changes the other layers and labels, so the two
+// groups are covered separately instead of as one cross product.
+const subLayerCombos = function* (): Generator<Options> {
   for (const firmware of OPTIONS.firmware.values)
     for (const labels of OPTIONS.labels.values)
-      for (const alphas of ALPHAS)
-        for (const nav of OPTIONS.nav.values)
-          for (const clipboard of OPTIONS.clipboard.values)
-            for (const layers of OPTIONS.layers.values)
-              yield { firmware, labels, alphas, extra: alphas, tap: alphas, nav, clipboard, layers };
+      for (const nav of OPTIONS.nav.values)
+        for (const clipboard of OPTIONS.clipboard.values)
+          for (const layers of OPTIONS.layers.values) yield { ...DEFAULTS, firmware, labels, nav, clipboard, layers };
 };
+const alphaCombos = function* (): Generator<Options> {
+  for (const firmware of OPTIONS.firmware.values)
+    for (const layers of OPTIONS.layers.values)
+      for (const alphas of ALPHAS) yield { ...DEFAULTS, firmware, layers, alphas, extra: alphas, tap: alphas };
+};
+function* combos() {
+  yield* subLayerCombos();
+  yield* alphaCombos();
+}
 
 const LAYERS: Layer[] = ["base", "nav", "mouse", "media", "num", "sym", "fun", "button"];
 const media = (o: Options) => buildKeymap(o).flatMap((k) => Object.values(k.corners)).filter((c) => c.layer === "media").map((c) => c.text);
