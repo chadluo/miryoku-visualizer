@@ -33,13 +33,18 @@
     --c-button: #94a3b8;
     --on-accent: #101014;
   }
+
+  /* The design system is light only; keep its outlined buttons and note borders legible on the dark page. */
+  .button--alt { color: var(--c-base); }
+  .button--alt:hover { color: #002a56; }
+  .note--info { border-color: var(--c-base); }
+  .note--warning { border-color: var(--c-fun); }
 }
 
+/* The design system is light only; these override its body colours to keep dark mode. */
 body {
-  margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 16px/1.5 system-ui, sans-serif;
 }
 
 main {
@@ -48,24 +53,37 @@ main {
   padding: 0 16px 48px;
 }
 
-a { color: var(--c-base); }
+a:not([class]) { color: var(--c-base); }
 
 .options {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 12px;
   align-items: end;
 }
 
-.options label { display: grid; gap: 2px; font-size: 0.8rem; color: var(--muted); }
-select, button { font: inherit; padding: 4px 8px; }
+.options .field { margin: 0; }
 
-.layers, .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
-.layers button, .tabs button { border-left: 4px solid var(--c, var(--c-base)); }
-button[aria-pressed="true"] { background: var(--c, var(--c-base)); color: var(--bg); }
+.layers { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+/* The layer colour marks each button; pressed and unpressed styling comes from the design system. */
+.layers .button { padding: 0.4rem 1rem; }
+.layers .button::before {
+  content: "";
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-right: 0.5em;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.note { margin: 0 0 1rem; padding: 1rem 1.25rem; }
+.note p, .note ul { margin: 0; }
+.note ul { padding-left: 1.2rem; }
 
 /* The page never scrolls sideways; the keyboard scrolls inside its own box on narrow screens. */
-.keyboard-wrap { overflow-x: auto; }
+.keyboard-wrap { overflow-x: auto; margin-bottom: 2rem; }
 .keyboard { display: block; min-width: 720px; width: 100%; user-select: none; -webkit-user-select: none; }
 
 .key rect { fill: var(--key); stroke: var(--key-edge); stroke-width: 1; }
@@ -103,6 +121,3 @@ pre {
   background: var(--key);
   border: 1px solid var(--key-edge);
 }
-
-.notes { padding-left: 1.2rem; }
-.notes .warning { color: var(--c-mouse); font-weight: 600; }

@@ -27,7 +27,7 @@ function Snippet({ title, text }: { title: string; text: string }) {
     <div>
       <h3>{title}</h3>
       <pre>{text}</pre>
-      <button type="button" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
+      <button type="button" className="button button--alt" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
     </div>
   );
 }
@@ -48,6 +48,9 @@ export default function App() {
   const highlight = heldKey !== null ? keys[heldKey].holdLayer ?? null : toggled;
   const firmware = options.firmware as Firmware;
   const parts = snippets(options);
+  const allNotes = notes(options, view);
+  const warnings = allNotes.filter((n) => n.kind === "warning");
+  const infos = allNotes.filter((n) => n.kind === "info");
 
   return (
     <main>
@@ -59,24 +62,30 @@ export default function App() {
 
       <section aria-label="Compile options" className="options">
         {OPTION_KEYS.map((k) => (
-          <label key={k}>
-            <span>{OPTIONS[k].name}</span>
-            <select value={options[k]} onChange={(e) => setOptions({ ...options, [k]: e.target.value })}>
+          <div className="field" key={k}>
+            <label htmlFor={`option-${k}`}>
+              <span className="field-label">{OPTIONS[k].name}</span>
+            </label>
+            <select id={`option-${k}`} name={k} value={options[k]} onChange={(e) => setOptions({ ...options, [k]: e.target.value })}>
               {OPTIONS[k].values.map((v) => (
                 <option key={v} value={v}>{valueText(k, v, options)}</option>
               ))}
             </select>
-          </label>
+          </div>
         ))}
-        <label>
-          <span>Base layer shown</span>
-          <select value={view} onChange={(e) => setView(e.target.value as BaseView)}>
+        <div className="field">
+          <label htmlFor="option-view">
+            <span className="field-label">Base layer shown</span>
+          </label>
+          <select id="option-view" name="view" value={view} onChange={(e) => setView(e.target.value as BaseView)}>
             <option value="base">Base</option>
             <option value="extra">Extra</option>
             <option value="tap">Tap</option>
           </select>
-        </label>
-        <button type="button" onClick={() => setOptions(DEFAULTS)}>Reset options</button>
+        </div>
+        <div className="field">
+          <button type="button" className="button button--alt" onClick={() => setOptions(DEFAULTS)}>Reset options</button>
+        </div>
       </section>
 
       <section aria-label="Highlight a layer" className="layers">
@@ -84,6 +93,7 @@ export default function App() {
           <button
             key={l}
             type="button"
+            className={"button" + (highlight === l ? "" : " button--alt")}
             aria-pressed={highlight === l}
             style={{ "--c": `var(--c-${l})` } as React.CSSProperties}
             onClick={() => setToggled(toggled === l ? null : l)}
@@ -99,11 +109,14 @@ export default function App() {
 
       <section aria-label="Firmware">
         <h2>Apply the options in {firmware}</h2>
-        <ul className="notes">
-          {notes(options, view).map((n) => (
-            <li key={n.text} className={n.kind}>{n.kind === "warning" ? "Warning: " : ""}{n.text}</li>
-          ))}
-        </ul>
+        {warnings.map((n) => (
+          <div key={n.text} className="l-box note note--warning" role="status">
+            <p><strong>Warning: </strong>{n.text}</p>
+          </div>
+        ))}
+        <div className="l-box note note--info">
+          <ul>{infos.map((n) => <li key={n.text}>{n.text}</li>)}</ul>
+        </div>
         {parts.length === 0 ? (
           <p>All options are the default, so {firmware} needs no extra configuration.</p>
         ) : (
