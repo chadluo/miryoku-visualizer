@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { FIRMWARE_LINKS, notes, snippets } from "./firmware";
 import Keyboard from "./Keyboard";
 import { LAYER_NAMES, buildKeymap, type BaseView, type Layer } from "./keymap";
@@ -56,7 +56,7 @@ export default function App() {
     </div>
   );
 
-  const keys = useMemo(() => buildKeymap(options, view), [options, view]);
+  const keys = buildKeymap(options, view);
   // A held thumb key wins over the toggle, and the toggle shows again on release.
   const highlight = heldKey !== null ? keys[heldKey].holdLayer ?? null : toggled;
   const firmware = options.firmware as Firmware;
