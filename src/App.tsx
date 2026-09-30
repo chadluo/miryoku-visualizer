@@ -13,7 +13,7 @@ import {
 const LAYERS = Object.keys(LAYER_NAMES) as Layer[];
 
 const link = "text-primary underline underline-offset-4";
-const grid = "grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] items-end gap-3";
+const grid = "grid gap-3";
 
 const TITLE_CASE: OptionKey[] = ["labels"];
 
@@ -31,11 +31,11 @@ function Snippet({ title, text }: { title: string; text: string }) {
       setTimeout(() => setCopied(false), 1500);
     });
   return (
-    <div className="mb-4">
+    <section className="mb-4">
       <h3 className="mb-1 font-medium">{title}</h3>
       <pre className="mb-2 overflow-x-auto rounded-lg border bg-muted p-3 text-sm">{text}</pre>
       <Button type="button" variant="outline" size="sm" onClick={copy}>{copied ? "Copied" : "Copy"}</Button>
-    </div>
+    </section>
   );
 }
 
@@ -51,14 +51,14 @@ export default function App() {
   }, [options]);
 
   const optionField = (k: OptionKey) => (
-    <div className="grid gap-1.5" key={k}>
+    <section className="grid gap-1.5" key={k}>
       <Label htmlFor={`option-${k}`}>{OPTIONS[k].name}</Label>
       <NativeSelect id={`option-${k}`} name={k} className="w-full" value={options[k]} onChange={(e) => setOptions({ ...options, [k]: e.target.value })}>
         {OPTIONS[k].values.map((v) => (
           <option key={v} value={v}>{valueText(k, v, options)}</option>
         ))}
       </NativeSelect>
-    </div>
+    </section>
   );
 
   const keys = buildKeymap(options, view);
@@ -73,40 +73,43 @@ export default function App() {
   return (
     <main className="mx-auto max-w-240 px-4 pb-12">
       <h1 className="my-6 text-3xl font-semibold">Miryoku Visualizer</h1>
-      <p>
+      <p className="mb-6">
         Preview the <a className={link} href="https://github.com/manna-harbour/miryoku">Miryoku</a> layout for the compile options you
         pick. Press and hold a thumb key to see its layer.
       </p>
 
-      <fieldset className="mb-6">
-        <legend className="mb-2 text-lg font-medium">View</legend>
-        <p className="mb-2 text-sm text-muted-foreground">Changes what the app shows. These are not passed to the firmware build.</p>
-        <div className={grid}>
-          {VIEW_KEYS.map(optionField)}
-          <div className="grid gap-1.5">
-            <Label htmlFor="option-view">Base layer shown</Label>
-            <NativeSelect id="option-view" name="view" className="w-full" value={view} onChange={(e) => setView(e.target.value as BaseView)}>
-              <option value="base">Base</option>
-              <option value="extra">Extra</option>
-              <option value="tap">Tap</option>
-            </NativeSelect>
-          </div>
-        </div>
-      </fieldset>
+      <section className="mb-6 grid gap-6 sm:grid-cols-2">
+        <fieldset className="min-w-0">
+          <legend className="mb-2 text-lg font-medium">View</legend>
+          <p className="mb-2 text-sm text-muted-foreground">Changes what the app shows. These are not passed to the firmware build.</p>
+          <section className={grid}>
+            {VIEW_KEYS.map(optionField)}
+            <section className="grid gap-1.5">
+              <Label htmlFor="option-view">Base layer shown</Label>
+              <NativeSelect id="option-view" name="view" className="w-full" value={view} onChange={(e) => setView(e.target.value as BaseView)}>
+                <option value="base">Base</option>
+                <option value="extra">Extra</option>
+                <option value="tap">Tap</option>
+              </NativeSelect>
+            </section>
+          </section>
+        </fieldset>
 
-      <fieldset className="mb-6">
-        <legend className="mb-2 text-lg font-medium">Miryoku compile options</legend>
-        <div className={grid}>
-          {MIRYOKU_KEYS.map(optionField)}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setOptions({ ...DEFAULTS, firmware: options.firmware, labels: options.labels })}
-          >
-            Reset compile options
-          </Button>
-        </div>
-      </fieldset>
+        <fieldset className="min-w-0">
+          <legend className="mb-2 text-lg font-medium">Miryoku compile options</legend>
+          <section className={grid}>
+            {MIRYOKU_KEYS.map(optionField)}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setOptions({ ...DEFAULTS, firmware: options.firmware, labels: options.labels })}
+            >
+              Reset compile options
+            </Button>
+          </section>
+        </fieldset>
+      </section>
 
       <section aria-label="Highlight a layer" className="my-4 flex flex-wrap gap-2">
         {LAYERS.map((l) => (
@@ -123,9 +126,9 @@ export default function App() {
         ))}
       </section>
 
-      <div className="keyboard-wrap">
+      <section className="keyboard-wrap">
         <Keyboard keys={keys} highlight={highlight} heldKey={heldKey} onHold={setHeldKey} />
-      </div>
+      </section>
 
       <section aria-label="Firmware">
         <h2 className="mb-3 text-xl font-medium">Apply the options in {firmware}</h2>
