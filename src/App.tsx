@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { FIRMWARE_LINKS, notes, snippets } from "./firmware";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import Keyboard from "./Keyboard";
 import { LAYER_NAMES, buildKeymap, type BaseView, type Layer } from "./keymap";
 import {
@@ -7,6 +11,9 @@ import {
 } from "./options";
 
 const LAYERS = Object.keys(LAYER_NAMES) as Layer[];
+
+const link = "text-primary underline underline-offset-4";
+const grid = "grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] items-end gap-3";
 
 const TITLE_CASE: OptionKey[] = ["labels"];
 
@@ -24,10 +31,10 @@ function Snippet({ title, text }: { title: string; text: string }) {
       setTimeout(() => setCopied(false), 1500);
     });
   return (
-    <div>
-      <h3>{title}</h3>
-      <pre>{text}</pre>
-      <button type="button" className="button button--alt" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
+    <div className="mb-4">
+      <h3 className="mb-1 font-medium">{title}</h3>
+      <pre className="mb-2 overflow-x-auto rounded-lg border bg-muted p-3 text-sm">{text}</pre>
+      <Button type="button" variant="outline" size="sm" onClick={copy}>{copied ? "Copied" : "Copy"}</Button>
     </div>
   );
 }
@@ -44,15 +51,13 @@ export default function App() {
   }, [options]);
 
   const optionField = (k: OptionKey) => (
-    <div className="field" key={k}>
-      <label htmlFor={`option-${k}`}>
-        <span className="field-label">{OPTIONS[k].name}</span>
-      </label>
-      <select id={`option-${k}`} name={k} value={options[k]} onChange={(e) => setOptions({ ...options, [k]: e.target.value })}>
+    <div className="grid gap-1.5" key={k}>
+      <Label htmlFor={`option-${k}`}>{OPTIONS[k].name}</Label>
+      <NativeSelect id={`option-${k}`} name={k} className="w-full" value={options[k]} onChange={(e) => setOptions({ ...options, [k]: e.target.value })}>
         {OPTIONS[k].values.map((v) => (
           <option key={v} value={v}>{valueText(k, v, options)}</option>
         ))}
-      </select>
+      </NativeSelect>
     </div>
   );
 
@@ -66,59 +71,55 @@ export default function App() {
   const infos = allNotes.filter((n) => n.kind === "info");
 
   return (
-    <main>
-      <h1>Miryoku Visualizer</h1>
+    <main className="mx-auto max-w-240 px-4 pb-12">
+      <h1 className="my-6 text-3xl font-semibold">Miryoku Visualizer</h1>
       <p>
-        Preview the <a href="https://github.com/manna-harbour/miryoku">Miryoku</a> layout for the compile options you
+        Preview the <a className={link} href="https://github.com/manna-harbour/miryoku">Miryoku</a> layout for the compile options you
         pick. Press and hold a thumb key to see its layer.
       </p>
 
-      <fieldset className="options">
-        <legend className="group-legend">View</legend>
-        <p className="field-hint">Changes what the app shows. These are not passed to the firmware build.</p>
-        <div className="options-grid">
+      <fieldset className="mb-6">
+        <legend className="mb-2 text-lg font-medium">View</legend>
+        <p className="mb-2 text-sm text-muted-foreground">Changes what the app shows. These are not passed to the firmware build.</p>
+        <div className={grid}>
           {VIEW_KEYS.map(optionField)}
-          <div className="field">
-            <label htmlFor="option-view">
-              <span className="field-label">Base layer shown</span>
-            </label>
-            <select id="option-view" name="view" value={view} onChange={(e) => setView(e.target.value as BaseView)}>
+          <div className="grid gap-1.5">
+            <Label htmlFor="option-view">Base layer shown</Label>
+            <NativeSelect id="option-view" name="view" className="w-full" value={view} onChange={(e) => setView(e.target.value as BaseView)}>
               <option value="base">Base</option>
               <option value="extra">Extra</option>
               <option value="tap">Tap</option>
-            </select>
+            </NativeSelect>
           </div>
         </div>
       </fieldset>
 
-      <fieldset className="options">
-        <legend className="group-legend">Miryoku compile options</legend>
-        <div className="options-grid">
+      <fieldset className="mb-6">
+        <legend className="mb-2 text-lg font-medium">Miryoku compile options</legend>
+        <div className={grid}>
           {MIRYOKU_KEYS.map(optionField)}
-          <div className="field">
-            <button
-              type="button"
-              className="button button--alt"
-              onClick={() => setOptions({ ...DEFAULTS, firmware: options.firmware, labels: options.labels })}
-            >
-              Reset compile options
-            </button>
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOptions({ ...DEFAULTS, firmware: options.firmware, labels: options.labels })}
+          >
+            Reset compile options
+          </Button>
         </div>
       </fieldset>
 
-      <section aria-label="Highlight a layer" className="layers">
+      <section aria-label="Highlight a layer" className="my-4 flex flex-wrap gap-2">
         {LAYERS.map((l) => (
-          <button
+          <Button
             key={l}
             type="button"
-            className={"button" + (highlight === l ? "" : " button--alt")}
+            variant={highlight === l ? "default" : "outline"}
             aria-pressed={highlight === l}
-            style={{ "--c": `var(--c-${l})` } as React.CSSProperties}
             onClick={() => setToggled(toggled === l ? null : l)}
           >
+            <span className="size-2.5 rounded-full" style={{ background: `var(--c-${l})` }} />
             {LAYER_NAMES[l]}
-          </button>
+          </Button>
         ))}
       </section>
 
@@ -127,29 +128,31 @@ export default function App() {
       </div>
 
       <section aria-label="Firmware">
-        <h2>Apply the options in {firmware}</h2>
+        <h2 className="mb-3 text-xl font-medium">Apply the options in {firmware}</h2>
         {warnings.map((n) => (
-          <div key={n.text} className="l-box note note--warning" role="status">
-            <p><strong>Warning: </strong>{n.text}</p>
-          </div>
+          <Alert key={n.text} variant="destructive" className="mb-4">
+            <AlertDescription><strong>Warning: </strong>{n.text}</AlertDescription>
+          </Alert>
         ))}
-        <div className="l-box note note--info">
-          <ul>{infos.map((n) => <li key={n.text}>{n.text}</li>)}</ul>
-        </div>
+        <Alert className="mb-4">
+          <AlertDescription>
+            <ul className="list-disc pl-5">{infos.map((n) => <li key={n.text}>{n.text}</li>)}</ul>
+          </AlertDescription>
+        </Alert>
         {parts.length === 0 ? (
-          <p>All options are the default, so {firmware} needs no extra configuration.</p>
+          <p className="mb-4">All options are the default, so {firmware} needs no extra configuration.</p>
         ) : (
           parts.map((s) => <Snippet key={s.title} {...s} />)
         )}
-        <p>
+        <p className="mb-4">
           {FIRMWARE_LINKS[firmware].map((l, i) => (
-            <span key={l.url}>{i > 0 && " · "}<a href={l.url}>{l.label}</a></span>
+            <span key={l.url}>{i > 0 && " · "}<a className={link} href={l.url}>{l.label}</a></span>
           ))}
         </p>
       </section>
-      <footer>
+      <footer className="mt-8">
         <p>
-          <a href="https://github.com/chadluo/miryoku-visualizer">Source on GitHub</a>
+          <a className={link} href="https://github.com/chadluo/miryoku-visualizer">Source on GitHub</a>
         </p>
       </footer>
     </main>
